@@ -1,4 +1,4 @@
-enum UserRole {
+enum Role {
     CUSTOMER
     TECHNICIAN
     ADMIN
@@ -6,7 +6,7 @@ enum UserRole {
 
 enum UserStatus {
     ACTIVE
-    BANNED
+    BLOCKED
 }
 
 enum BookingStatus {
