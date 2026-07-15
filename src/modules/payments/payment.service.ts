@@ -1,13 +1,13 @@
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../lib/stripe";
+import Stripe from "stripe";
 
 const createCheckoutSessionIntoDB = async (
   userId: string,
   bookingId: string,
 ) => {
   const transactionResult = await prisma.$transaction(async (tx) => {
-
     const booking = await tx.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
@@ -16,7 +16,6 @@ const createCheckoutSessionIntoDB = async (
         service: true,
       },
     });
-
 
     if (booking.customerId !== userId) {
       throw new Error("Unauthorized access to this booking!");
@@ -58,16 +57,22 @@ const createCheckoutSessionIntoDB = async (
 
 const handleWebhook = async (payload: Buffer, signature: string) => {
   const endpointSecret = config.stripe_webhook_secret;
-  const event = stripe.webhooks.constructEvent(
-    payload,
-    signature,
-    endpointSecret as string,
-  );
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      endpointSecret as string,
+    );
+  } catch (err: any) {
+    throw new Error(`Webhook Error: ${err.message}`);
+  }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const bookingId = session.metadata?.bookingId as string;
-    const userId = session.metadata?.userId as string;
+    const session = event.data.object as Stripe.Checkout.Session;
+    const bookingId = session.metadata?.bookingId;
+    const userId = session.metadata?.userId;
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment process incomplete.");
@@ -77,8 +82,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
     }
 
     await prisma.$transaction(async (tx) => {
-
-      const existingPayment = await tx.payment.findUnique({
+      const existingPayment = await tx.payment.findFirst({
         where: {
           bookingId,
         },

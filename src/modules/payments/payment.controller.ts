@@ -26,14 +26,23 @@ const createCheckoutSession = catchAsync(
 const handleWebhook = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const event = req.body as Buffer;
-    const signature = req.headers["stripe-signature"]!;
+    const signature = req.headers["stripe-signature"] as string;
 
-    await paymentService.handleWebhook(event, signature as string);
+    if (!signature) {
+      return sendResponse(res, {
+        success: false,
+        statusCode: httpStatus.BAD_REQUEST,
+        message: "Stripe signature is missing in headers",
+        data: null,
+      });
+    }
+
+    await paymentService.handleWebhook(event, signature);
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Payment confirmed successfully via webhook",
+      message: "Payment processed successfully via webhook",
       data: null,
     });
   },
