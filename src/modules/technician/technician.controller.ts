@@ -48,8 +48,28 @@ const getMyBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const bookingId = req.params.id as string;
+  const payload = req.body;
+
+  const result = await technicianService.updateBookingStatusInDB(
+    userId,
+    bookingId,
+    payload,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Booking status updated successfully",
+    data: result,
+  });
+});
+
 export const technicianController = {
   updateProfile,
   updateAvailability,
   getMyBookings,
+  updateBookingStatus,
 };

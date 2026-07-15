@@ -13,4 +13,10 @@ router.put(
   technicianController.updateAvailability,
 );
 
+router.patch(
+  "/bookings/:id",
+  auth("TECHNICIAN"),
+  technicianController.updateBookingStatus,
+);
+
 export const technicianRoutes = router;
