@@ -8,3 +8,8 @@ export type TTechnicianProfileUpdateInput = {
 export type TUpdateAvailabilityInput = {
   availabilitySlots: string[];
 };
+
+
+export type TUpdateBookingStatusInput = {
+  status: "ACCEPTED" | "DECLINED" | "IN_PROGRESS" | "COMPLETED";
+};

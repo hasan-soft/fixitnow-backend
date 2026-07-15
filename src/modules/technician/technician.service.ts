@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import {
   TTechnicianProfileUpdateInput,
   TUpdateAvailabilityInput,
+  TUpdateBookingStatusInput,
 } from "./technician.interface";
 
 const updateProfileIntoDB = async (
@@ -71,8 +72,48 @@ const getMyBookingsFromDB = async (userId: string) => {
   return result;
 };
 
+
+const updateBookingStatusInDB = async (
+  userId: string,
+  bookingId: string,
+  payload: TUpdateBookingStatusInput,
+) => {
+  
+  const technicianProfile = await prisma.technicianProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!technicianProfile) {
+    throw new Error("Technician profile not found!");
+  }
+
+  
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+
+  if (!booking) {
+    throw new Error("Booking not found!");
+  }
+
+  if (booking.technicianProfileId !== technicianProfile.id) {
+    throw new Error("You are not authorized to update this booking!");
+  }
+
+  
+  const result = await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      status: payload.status,
+    },
+  });
+
+  return result;
+};
+
 export const technicianService = {
   updateProfileIntoDB,
   updateAvailabilityIntoDB,
   getMyBookingsFromDB,
+  updateBookingStatusInDB,
 };
