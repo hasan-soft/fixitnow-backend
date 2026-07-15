@@ -18,3 +18,4 @@ model TechnicianProfile {
 
     @@map("technician_profiles")
 }
+

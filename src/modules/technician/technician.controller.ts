@@ -1,0 +1,55 @@
+import { Request, Response } from "express";
+import httpStatus from "http-status";
+import { catchAsync } from "../../utils/catchAsync";
+import { sendResponse } from "../../utils/sendResponse";
+import { technicianService } from "./technician.service";
+
+const updateProfile = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const payload = req.body;
+
+  const result = await technicianService.updateProfileIntoDB(userId, payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Technician profile updated successfully",
+    data: result,
+  });
+});
+
+const updateAvailability = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const payload = req.body;
+
+  const result = await technicianService.updateAvailabilityIntoDB(
+    userId,
+    payload,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Availability slots updated successfully",
+    data: result,
+  });
+});
+
+const getMyBookings = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+
+  const result = await technicianService.getMyBookingsFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Technician bookings fetched successfully",
+    data: result,
+  });
+});
+
+export const technicianController = {
+  updateProfile,
+  updateAvailability,
+  getMyBookings,
+};

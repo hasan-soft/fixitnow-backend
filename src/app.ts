@@ -11,6 +11,7 @@ import { authRoutes } from "./modules/auth/auth.route";
 // import { paymentRoutes } from "./modules/payment/payment.route";
 // import { reviewRoutes } from "./modules/review/review.route";
 // import { adminRoutes } from "./modules/admin/admin.route";
+import { technicianRoutes } from "./modules/technician/technician.route";
 
 import { notFound } from "./middlewares/notFound";
 import { globalAErrorHandler } from "./middlewares/globalErrorHandler";
@@ -40,6 +41,7 @@ app.use("/api/auth", authRoutes);
 // app.use("/api/payments", paymentRoutes);
 // app.use("/api/reviews", reviewRoutes);
 // app.use("/api/admin", adminRoutes);
+app.use("/api/technician", technicianRoutes);
 
 app.use(notFound);
 app.use(globalAErrorHandler);
