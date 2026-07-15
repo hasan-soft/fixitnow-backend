@@ -78,7 +78,6 @@ const updateBookingStatusInDB = async (
   bookingId: string,
   payload: TUpdateBookingStatusInput,
 ) => {
-  
   const technicianProfile = await prisma.technicianProfile.findUnique({
     where: { userId },
   });
@@ -87,7 +86,6 @@ const updateBookingStatusInDB = async (
     throw new Error("Technician profile not found!");
   }
 
-  
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
   });
@@ -100,7 +98,24 @@ const updateBookingStatusInDB = async (
     throw new Error("You are not authorized to update this booking!");
   }
 
-  
+  if (payload.status === "ACCEPTED" || payload.status === "DECLINED") {
+    if (booking.status !== "REQUESTED") {
+      throw new Error("Only REQUESTED bookings can be accepted or declined!");
+    }
+  }
+
+  if (payload.status === "IN_PROGRESS") {
+    if (booking.status !== "PAID") {
+      throw new Error("Can only start jobs that are already PAID!");
+    }
+  }
+
+  if (payload.status === "COMPLETED") {
+    if (booking.status !== "IN_PROGRESS") {
+      throw new Error("Can only complete jobs that are currently IN_PROGRESS!");
+    }
+  }
+
   const result = await prisma.booking.update({
     where: { id: bookingId },
     data: {

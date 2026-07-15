@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.put("/profile", auth("TECHNICIAN"), technicianController.updateProfile);
 
-
 router.put(
   "/availability",
   auth("TECHNICIAN"),
@@ -18,5 +17,7 @@ router.patch(
   auth("TECHNICIAN"),
   technicianController.updateBookingStatus,
 );
+
+router.get("/bookings", auth("TECHNICIAN"), technicianController.getMyBookings);
 
 export const technicianRoutes = router;
