@@ -1,4 +1,4 @@
-// src/modules/auth/auth.route.ts
+
 import express from "express";
 import { AuthController } from "./auth.controller";
 import { auth } from "../../middlewares/auth";
