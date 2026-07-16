@@ -48,7 +48,49 @@ const handleWebhook = catchAsync(
   },
 );
 
+const getAllPayments = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    const result = await paymentService.getAllPaymentsFromDB(
+      userId as string,
+      role as string,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Payment history retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+const getSinglePayment = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+    const role = req.user?.role;
+    const paymentId = req.params.id as string;
+
+    const result = await paymentService.getSinglePaymentFromDB(
+      paymentId,
+      userId as string,
+      role as string,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Payment details retrieved successfully",
+      data: result,
+    });
+  },
+);
+
 export const paymentController = {
   createCheckoutSession,
   handleWebhook,
+  getAllPayments,
+  getSinglePayment,
 };

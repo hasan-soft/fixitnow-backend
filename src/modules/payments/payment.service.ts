@@ -117,7 +117,59 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   }
 };
 
+const getAllPaymentsFromDB = async (userId: string, role: string) => {
+  let queryFilter = {};
+
+  if (role === "CUSTOMER") {
+    queryFilter = {
+      userId: userId,
+    };
+  }
+
+  const result = await prisma.payment.findMany({
+    where: queryFilter,
+    include: {
+      booking: {
+        include: {
+          service: true,
+        },
+      },
+    },
+    orderBy: {
+      paidAt: "desc",
+    },
+  });
+
+  return result;
+};
+
+const getSinglePaymentFromDB = async (
+  paymentId: string,
+  userId: string,
+  role: string,
+) => {
+  const payment = await prisma.payment.findUniqueOrThrow({
+    where: {
+      id: paymentId,
+    },
+    include: {
+      booking: {
+        include: {
+          service: true,
+        },
+      },
+    },
+  });
+
+  if (role === "CUSTOMER" && payment.booking.customerId !== userId) {
+    throw new Error("Unauthorized access to this payment details!");
+  }
+
+  return payment;
+};
 export const paymentService = {
   createCheckoutSessionIntoDB,
   handleWebhook,
+  getAllPaymentsFromDB,
+  getSinglePaymentFromDB,
 };
