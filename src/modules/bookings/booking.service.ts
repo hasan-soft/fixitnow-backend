@@ -5,7 +5,6 @@ const createBookingIntoDB = async (
   userId: string,
   payload: TCreateBookingInput,
 ) => {
- 
   const customer = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -13,7 +12,6 @@ const createBookingIntoDB = async (
   if (!customer || customer.role !== "CUSTOMER") {
     throw new Error("Only active customers can create a booking!");
   }
-
 
   const technician = await prisma.technicianProfile.findUnique({
     where: { id: payload.technicianProfileId },
@@ -31,7 +29,11 @@ const createBookingIntoDB = async (
     throw new Error("Requested service not found!");
   }
 
-  const result = await prisma.booking.create({
+  if (!technician.availabilitySlots.includes(payload.timeSlot)) {
+    throw new Error("Selected time slot is not available for this technician!");
+  }
+
+  return await prisma.booking.create({
     data: {
       customerId: customer.id,
       technicianProfileId: payload.technicianProfileId,
@@ -45,10 +47,32 @@ const createBookingIntoDB = async (
       service: true,
     },
   });
+};
 
-  return result;
+const getMyBookingsFromDB = async (customerId: string) => {
+  return await prisma.booking.findMany({
+    where: { customerId },
+    include: { service: true, technicianProfile: { include: { user: true } } },
+  });
+};
+
+const getBookingDetailsFromDB = async (
+  customerId: string,
+  bookingId: string,
+) => {
+  const booking = await prisma.booking.findUniqueOrThrow({
+    where: { id: bookingId },
+    include: { service: true, technicianProfile: { include: { user: true } } },
+  });
+
+  if (booking.customerId !== customerId) {
+    throw new Error("You are not authorized to view this booking!");
+  }
+  return booking;
 };
 
 export const bookingService = {
   createBookingIntoDB,
+  getMyBookingsFromDB,
+  getBookingDetailsFromDB,
 };

@@ -1,9 +1,12 @@
 import express from "express";
 import { auth } from "../../middlewares/auth";
+import { Role } from "../../../generated/prisma/enums";
 import { bookingController } from "./booking.controller";
 
 const router = express.Router();
 
-router.post("/", auth("CUSTOMER"), bookingController.createBooking);
+router.post("/", auth(Role.CUSTOMER), bookingController.createBooking);
+router.get("/", auth(Role.CUSTOMER), bookingController.getMyBookings);
+router.get("/:id", auth(Role.CUSTOMER), bookingController.getBookingDetails);
 
 export const bookingRoutes = router;

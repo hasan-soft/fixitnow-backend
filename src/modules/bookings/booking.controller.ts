@@ -5,7 +5,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { bookingService } from "./booking.service";
 
 const createBooking = catchAsync(async (req: Request, res: Response) => {
-  const userId = (req as any).user.id; 
+  const userId = (req as any).user.id;
   const payload = req.body;
 
   const result = await bookingService.createBookingIntoDB(userId, payload);
@@ -18,6 +18,35 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyBookings = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const result = await bookingService.getMyBookingsFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Bookings fetched successfully",
+    data: result,
+  });
+});
+
+const getBookingDetails = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const result = await bookingService.getBookingDetailsFromDB(
+    userId,
+    req.params.id as string,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Booking details fetched successfully",
+    data: result,
+  });
+});
+
 export const bookingController = {
   createBooking,
+  getMyBookings,
+  getBookingDetails,
 };
