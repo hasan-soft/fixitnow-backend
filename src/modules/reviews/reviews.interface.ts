@@ -1,5 +1,5 @@
 export interface IReview {
   rating: number;
-  comment: string;
+  comment?: string;
   bookingId: string;
 }

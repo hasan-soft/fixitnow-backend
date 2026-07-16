@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { IReview } from "./reviews.interface";
 import httpStatus from "http-status";
+import { Role } from "../../../generated/prisma/enums";
 
 const createReviewIntoDB = async (userId: string, payload: IReview) => {
   const { bookingId, rating, comment } = payload;
@@ -76,11 +77,29 @@ const getAllReviewsFromDB = async () => {
   });
 };
 
-const deleteReviewFromDB = async (id: string) => {
+const deleteReviewFromDB = async (
+  reviewId: string,
+  userId: string,
+  role: string,
+) => {
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+  });
+
+  if (!review) {
+    const error = new Error("Review not found!");
+    (error as any).statusCode = httpStatus.NOT_FOUND;
+    throw error;
+  }
+
+  if (role === Role.CUSTOMER && review.customerId !== userId) {
+    const error = new Error("You are not authorized to delete this review!");
+    (error as any).statusCode = httpStatus.UNAUTHORIZED;
+    throw error;
+  }
+
   return await prisma.review.delete({
-    where: {
-      id,
-    },
+    where: { id: reviewId },
   });
 };
 

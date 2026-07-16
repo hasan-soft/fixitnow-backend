@@ -16,6 +16,9 @@ const createBookingIntoDB = async (
 
   const technician = await prisma.technicianProfile.findUnique({
     where: { id: payload.technicianProfileId },
+    include: {
+      availabilitySlots: true,
+    },
   });
 
   if (!technician) {
@@ -30,7 +33,11 @@ const createBookingIntoDB = async (
     throw new Error("Requested service not found!");
   }
 
-  if (!technician.availabilitySlots.includes(payload.timeSlot)) {
+  const isSlotAvailable = technician.availabilitySlots.some(
+    (s) => s.slot === payload.timeSlot,
+  );
+
+  if (!isSlotAvailable) {
     throw new Error("Selected time slot is not available for this technician!");
   }
 

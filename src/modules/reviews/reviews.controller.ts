@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
-import { sendResponse } from "../../utils/sendResponse";
+import { sendResponse } from "../../utils/sendResponse"
 import { reviewService } from "./reviews.service";
 import httpStatus from "http-status";
 
@@ -35,7 +35,11 @@ const getAllReviews = catchAsync(
 
 const deleteReview = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    await reviewService.deleteReviewFromDB(req.params.id as string);
+    const reviewId = req.params.id as string;
+    const userId = req.user!.id;
+    const role = req.user!.role;
+
+    await reviewService.deleteReviewFromDB(reviewId, userId, role);
 
     sendResponse(res, {
       success: true,

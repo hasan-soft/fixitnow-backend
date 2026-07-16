@@ -1,35 +1,59 @@
 import { prisma } from "../../lib/prisma";
 import {
-    ITechnicianFilterRequest,
+  ITechnicianFilterRequest,
   TTechnicianProfileUpdateInput,
   TUpdateAvailabilityInput,
   TUpdateBookingStatusInput,
 } from "./technician.interface";
 
+
 const updateProfileIntoDB = async (
   userId: string,
   payload: TTechnicianProfileUpdateInput,
 ) => {
+
+  const { availabilitySlots, ...profileData } = payload as any;
+
   const isProfileExist = await prisma.technicianProfile.findUnique({
     where: { userId },
   });
 
+  let profile;
+
   if (isProfileExist) {
-    return await prisma.technicianProfile.update({
+    profile = await prisma.technicianProfile.update({
       where: { userId },
-      data: payload,
+      data: profileData,
+    });
+  } else {
+    profile = await prisma.technicianProfile.create({
+      data: {
+        userId,
+        skills: profileData.skills || [],
+        experience: profileData.experience || 0,
+        pricing: profileData.pricing || 0.0,
+        bio: profileData.bio,
+      },
     });
   }
 
-  return await prisma.technicianProfile.create({
-    data: {
-      userId,
-      skills: payload.skills || [],
-      experience: payload.experience || 0,
-      pricing: payload.pricing || 0.0,
-      bio: payload.bio,
-      availabilitySlots: [],
-    },
+  if (availabilitySlots && availabilitySlots.length > 0) {
+    await prisma.availability.deleteMany({
+      where: { technicianProfileId: profile.id, isBooked: false },
+    });
+
+    await prisma.availability.createMany({
+      data: availabilitySlots.map((item: { slot: string }) => ({
+        technicianProfileId: profile.id,
+        slot: item.slot,
+        isBooked: false,
+      })),
+    });
+  }
+
+  return await prisma.technicianProfile.findUnique({
+    where: { userId },
+    include: { availabilitySlots: true },
   });
 };
 
@@ -37,11 +61,36 @@ const updateAvailabilityIntoDB = async (
   userId: string,
   payload: TUpdateAvailabilityInput,
 ) => {
-  return await prisma.technicianProfile.update({
+  const technicianProfile = await prisma.technicianProfile.findUnique({
     where: { userId },
-    data: {
-      availabilitySlots: payload.availabilitySlots,
+  });
+
+  if (!technicianProfile) {
+    throw new Error("Technician profile not found!");
+  }
+
+  const slots = (payload.availabilitySlots || []) as any[];
+
+  await prisma.availability.deleteMany({
+    where: {
+      technicianProfileId: technicianProfile.id,
+      isBooked: false,
     },
+  });
+
+  if (slots.length > 0) {
+    await prisma.availability.createMany({
+      data: slots.map((item: { slot: string }) => ({
+        technicianProfileId: technicianProfile.id,
+        slot: item.slot,
+        isBooked: false,
+      })),
+    });
+  }
+
+  return await prisma.technicianProfile.findUnique({
+    where: { userId },
+    include: { availabilitySlots: true },
   });
 };
 
@@ -72,7 +121,6 @@ const getMyBookingsFromDB = async (userId: string) => {
 
   return result;
 };
-
 
 const updateBookingStatusInDB = async (
   userId: string,
@@ -166,6 +214,7 @@ const getAllTechniciansFromDB = async (filters: ITechnicianFilterRequest) => {
       user: true,
       services: { include: { category: true } },
       bookings: { include: { review: true } },
+      availabilitySlots: true,
     },
   });
 
@@ -195,6 +244,7 @@ const getSingleTechnicianFromDB = async (id: string) => {
     include: {
       user: true,
       services: { include: { category: true } },
+      availabilitySlots: true,
       bookings: {
         include: {
           review: {

@@ -3,12 +3,12 @@ export type TTechnicianProfileUpdateInput = {
   skills?: string[];
   experience?: number;
   pricing?: number;
+  availabilitySlots?: { slot: string }[];
 };
 
 export type TUpdateAvailabilityInput = {
-  availabilitySlots: string[];
+  availabilitySlots: { slot: string }[];
 };
-
 
 export type TUpdateBookingStatusInput = {
   status: "ACCEPTED" | "DECLINED" | "IN_PROGRESS" | "COMPLETED";
