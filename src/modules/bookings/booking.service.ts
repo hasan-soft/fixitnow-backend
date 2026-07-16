@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { TCreateBookingInput } from "./booking.interface";
+import { Role } from "../../../generated/prisma/enums";
 
 const createBookingIntoDB = async (
   userId: string,
@@ -9,7 +10,7 @@ const createBookingIntoDB = async (
     where: { id: userId },
   });
 
-  if (!customer || customer.role !== "CUSTOMER") {
+  if (!customer || customer.role !== Role.CUSTOMER) {
     throw new Error("Only active customers can create a booking!");
   }
 

@@ -1,12 +1,13 @@
 import express, { Router } from "express";
 import { auth } from "../../middlewares/auth";
 import { paymentController } from "./payment.controller";
+import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
 router.post(
   "/create/:id",
-  auth("CUSTOMER"),
+  auth(Role.CUSTOMER),
   paymentController.createCheckoutSession,
 );
 
@@ -16,11 +17,15 @@ router.post(
   paymentController.handleWebhook,
 );
 
-router.get("/", auth("CUSTOMER", "ADMIN"), paymentController.getAllPayments);
+router.get(
+  "/",
+  auth(Role.CUSTOMER, Role.ADMIN),
+  paymentController.getAllPayments,
+);
 
 router.get(
   "/:id",
-  auth("CUSTOMER", "ADMIN"),
+  auth(Role.CUSTOMER, Role.ADMIN),
   paymentController.getSinglePayment,
 );
 

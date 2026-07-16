@@ -1,4 +1,4 @@
-// src/middlewares/auth.ts
+
 import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { Role, UserStatus } from "../../generated/prisma/enums";

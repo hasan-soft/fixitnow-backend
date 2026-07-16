@@ -1,6 +1,7 @@
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../lib/stripe";
+import { Role } from "../../../generated/prisma/enums";
 import Stripe from "stripe";
 
 const createCheckoutSessionIntoDB = async (
@@ -120,7 +121,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
 const getAllPaymentsFromDB = async (userId: string, role: string) => {
   let queryFilter = {};
 
-  if (role === "CUSTOMER") {
+  if (role === Role.CUSTOMER) {
     queryFilter = {
       userId: userId,
     };
@@ -161,7 +162,7 @@ const getSinglePaymentFromDB = async (
     },
   });
 
-  if (role === "CUSTOMER" && payment.booking.customerId !== userId) {
+  if (role === Role.CUSTOMER && payment.booking.customerId !== userId) {
     throw new Error("Unauthorized access to this payment details!");
   }
 
