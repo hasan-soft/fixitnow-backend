@@ -79,8 +79,51 @@ const getBookingDetailsFromDB = async (
   return booking;
 };
 
+const cancelBookingFromDB = async (userId: string, bookingId: string) => {
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+
+  if (!booking) {
+    throw new Error("Booking not found!");
+  }
+
+  if (booking.customerId !== userId) {
+    throw new Error("You are not authorized to cancel this booking!");
+  }
+
+
+  if (booking.status === "CANCELLED") {
+    throw new Error("This booking is already cancelled!");
+  }
+  if (booking.status === "DECLINED") {
+    throw new Error(
+      "This booking has already been declined by the technician!",
+    );
+  }
+
+ 
+  if (booking.status === "IN_PROGRESS" || booking.status === "COMPLETED") {
+    throw new Error(
+      "Cannot cancel a booking that is already in progress or completed!",
+    );
+  }
+
+ 
+  const result = await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      status: "CANCELLED",
+    },
+  });
+
+  return result;
+};
+
 export const bookingService = {
   createBookingIntoDB,
   getMyBookingsFromDB,
   getBookingDetailsFromDB,
+  cancelBookingFromDB,
 };

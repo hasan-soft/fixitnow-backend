@@ -73,12 +73,11 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const bookingId = session.metadata?.bookingId;
-    const userId = session.metadata?.userId;
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment process incomplete.");
     }
-    if (!bookingId || !userId) {
+    if (!bookingId) {
       throw new Error("Required metadata missing from Stripe session.");
     }
 
@@ -96,7 +95,6 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
       await tx.payment.create({
         data: {
           bookingId,
-          userId,
           amount: (session.amount_total ?? 0) / 100,
           provider: "STRIPE",
           status: "COMPLETED",
@@ -123,7 +121,9 @@ const getAllPaymentsFromDB = async (userId: string, role: string) => {
 
   if (role === Role.CUSTOMER) {
     queryFilter = {
-      userId: userId,
+      booking: {
+        customerId: userId,
+      },
     };
   }
 
@@ -168,6 +168,7 @@ const getSinglePaymentFromDB = async (
 
   return payment;
 };
+
 export const paymentService = {
   createCheckoutSessionIntoDB,
   handleWebhook,

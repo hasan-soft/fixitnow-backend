@@ -16,4 +16,5 @@ enum BookingStatus {
     PAID
     IN_PROGRESS
     COMPLETED
+    CANCELLED
 }
