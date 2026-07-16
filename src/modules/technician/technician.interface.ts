@@ -13,3 +13,12 @@ export type TUpdateAvailabilityInput = {
 export type TUpdateBookingStatusInput = {
   status: "ACCEPTED" | "DECLINED" | "IN_PROGRESS" | "COMPLETED";
 };
+
+export interface ITechnicianFilterRequest {
+  searchTerm?: string;
+  categoryId?: string;
+  location?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  rating?: string;
+}

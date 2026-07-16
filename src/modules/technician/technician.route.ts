@@ -4,6 +4,9 @@ import { auth } from "../../middlewares/auth";
 
 const router = express.Router();
 
+router.get("/", technicianController.getAllTechnicians);
+router.get("/:id", technicianController.getSingleTechnician);
+
 router.put("/profile", auth("TECHNICIAN"), technicianController.updateProfile);
 
 router.put(
