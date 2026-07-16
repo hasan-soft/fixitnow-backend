@@ -46,8 +46,33 @@ const getAllBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const createCategory = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.createCategoryInDB(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "Category created successfully",
+    data: result,
+  });
+});
+
+const getAllCategories = catchAsync(async (req: Request, res: Response) => {
+  const result = await adminService.getAllCategoriesFromDB();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Categories retrieved successfully",
+    data: result,
+  });
+});
+
 export const adminController = {
   getAllUsers,
   updateUserStatus,
   getAllBookings,
+  createCategory,
+  getAllCategories,
 };

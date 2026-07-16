@@ -4,7 +4,7 @@ import cors from "cors";
 import config from "./config";
 
 import { authRoutes } from "./modules/auth/auth.route";
-// import { userRoutes } from "./modules/user/user.route";
+import { userRoutes } from "./modules/user/user.route";
 import { categoryRoutes } from "./modules/category/category.route";
 import { serviceRoutes } from "./modules/service/service.route";
 import { bookingRoutes } from "./modules/bookings/booking.route";
@@ -14,7 +14,7 @@ import { adminRoutes } from "./modules/admin/admin.route";
 import { technicianRoutes } from "./modules/technician/technician.route";
 
 import { notFound } from "./middlewares/notFound";
-import { globalAErrorHandler } from "./middlewares/globalErrorHandler";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 
 const app: Application = express();
 
@@ -36,7 +36,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/auth", authRoutes);
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingRoutes);
@@ -46,6 +46,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/technician", technicianRoutes);
 
 app.use(notFound);
-app.use(globalAErrorHandler);
+app.use(globalErrorHandler);
 
 export default app;

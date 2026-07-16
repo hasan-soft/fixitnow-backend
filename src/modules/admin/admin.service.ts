@@ -74,8 +74,32 @@ const getAllBookingsFromDB = async () => {
   });
 };
 
+
+const createCategoryInDB = async (payload: {
+  name: string;
+  description?: string;
+}) => {
+  const result = await prisma.category.create({
+    data: {
+      name: payload.name,
+      description: payload.description || "",
+    },
+  });
+  return result;
+};
+
+const getAllCategoriesFromDB = async () => {
+  return await prisma.category.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
+};
+
 export const adminService = {
   getAllUsersFromDB,
   updateUserStatusInDB,
   getAllBookingsFromDB,
+  createCategoryInDB,
+  getAllCategoriesFromDB,
 };

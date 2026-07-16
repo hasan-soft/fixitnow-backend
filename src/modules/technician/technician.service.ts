@@ -1,17 +1,17 @@
 import { prisma } from "../../lib/prisma";
+import { BookingStatus } from "../../../generated/prisma/enums";
 import {
   ITechnicianFilterRequest,
   TTechnicianProfileUpdateInput,
   TUpdateAvailabilityInput,
   TUpdateBookingStatusInput,
 } from "./technician.interface";
-
+import httpStatus from "http-status";
 
 const updateProfileIntoDB = async (
   userId: string,
   payload: TTechnicianProfileUpdateInput,
 ) => {
-
   const { availabilitySlots, ...profileData } = payload as any;
 
   const isProfileExist = await prisma.technicianProfile.findUnique({
@@ -66,7 +66,9 @@ const updateAvailabilityIntoDB = async (
   });
 
   if (!technicianProfile) {
-    throw new Error("Technician profile not found!");
+    const error = new Error("Technician profile not found!");
+    (error as any).statusCode = httpStatus.NOT_FOUND;
+    throw error;
   }
 
   const slots = (payload.availabilitySlots || []) as any[];
@@ -100,10 +102,12 @@ const getMyBookingsFromDB = async (userId: string) => {
   });
 
   if (!technicianProfile) {
-    throw new Error("Technician profile not found!");
+    const error = new Error("Technician profile not found!");
+    (error as any).statusCode = httpStatus.NOT_FOUND;
+    throw error;
   }
 
-  const result = await prisma.booking.findMany({
+  return await prisma.booking.findMany({
     where: {
       technicianProfileId: technicianProfile.id,
     },
@@ -117,9 +121,10 @@ const getMyBookingsFromDB = async (userId: string) => {
       },
       service: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
-
-  return result;
 };
 
 const updateBookingStatusInDB = async (
@@ -127,12 +132,22 @@ const updateBookingStatusInDB = async (
   bookingId: string,
   payload: TUpdateBookingStatusInput,
 ) => {
+  const status = payload.status as BookingStatus;
+
+  if (!status) {
+    const error = new Error("Status is required!");
+    (error as any).statusCode = httpStatus.BAD_REQUEST;
+    throw error;
+  }
+
   const technicianProfile = await prisma.technicianProfile.findUnique({
     where: { userId },
   });
 
   if (!technicianProfile) {
-    throw new Error("Technician profile not found!");
+    const error = new Error("Technician profile not found!");
+    (error as any).statusCode = httpStatus.NOT_FOUND;
+    throw error;
   }
 
   const booking = await prisma.booking.findUnique({
@@ -140,35 +155,49 @@ const updateBookingStatusInDB = async (
   });
 
   if (!booking) {
-    throw new Error("Booking not found!");
+    const error = new Error("Booking not found!");
+    (error as any).statusCode = httpStatus.NOT_FOUND;
+    throw error;
   }
 
   if (booking.technicianProfileId !== technicianProfile.id) {
-    throw new Error("You are not authorized to update this booking!");
+    const error = new Error("You are not authorized to update this booking!");
+    (error as any).statusCode = httpStatus.UNAUTHORIZED;
+    throw error;
   }
 
-  if (payload.status === "ACCEPTED" || payload.status === "DECLINED") {
-    if (booking.status !== "REQUESTED") {
-      throw new Error("Only REQUESTED bookings can be accepted or declined!");
+  if (status === BookingStatus.ACCEPTED || status === BookingStatus.DECLINED) {
+    if (booking.status !== BookingStatus.REQUESTED) {
+      const error = new Error(
+        "Only REQUESTED bookings can be accepted or declined!",
+      );
+      (error as any).statusCode = httpStatus.BAD_REQUEST;
+      throw error;
     }
   }
 
-  if (payload.status === "IN_PROGRESS") {
-    if (booking.status !== "PAID") {
-      throw new Error("Can only start jobs that are already PAID!");
+  if (status === BookingStatus.IN_PROGRESS) {
+    if (booking.status !== BookingStatus.PAID) {
+      const error = new Error("Can only start jobs that are already PAID!");
+      (error as any).statusCode = httpStatus.BAD_REQUEST;
+      throw error;
     }
   }
 
-  if (payload.status === "COMPLETED") {
-    if (booking.status !== "IN_PROGRESS") {
-      throw new Error("Can only complete jobs that are currently IN_PROGRESS!");
+  if (status === BookingStatus.COMPLETED) {
+    if (booking.status !== BookingStatus.IN_PROGRESS) {
+      const error = new Error(
+        "Can only complete jobs that are currently IN_PROGRESS!",
+      );
+      (error as any).statusCode = httpStatus.BAD_REQUEST;
+      throw error;
     }
   }
 
   const result = await prisma.booking.update({
     where: { id: bookingId },
     data: {
-      status: payload.status,
+      status,
     },
   });
 
