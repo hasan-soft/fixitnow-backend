@@ -12,7 +12,11 @@ const updateProfileIntoDB = async (
   userId: string,
   payload: TTechnicianProfileUpdateInput,
 ) => {
-  const { availabilitySlots, ...profileData } = payload as any;
+  const {
+    availabilitySlots = [],
+    categoryId,
+    ...profileData
+  } = (payload || {}) as any;
 
   const isProfileExist = await prisma.technicianProfile.findUnique({
     where: { userId },
@@ -37,6 +41,22 @@ const updateProfileIntoDB = async (
     });
   }
 
+  if (categoryId) {
+    await prisma.service.deleteMany({
+      where: { technicianProfileId: profile.id },
+    });
+
+    await prisma.service.create({
+      data: {
+        name: `${profileData.skills?.[0] || "General"} Service`,
+        description: `Professional ${profileData.skills?.join(", ") || "home"} services rendered by certified technician.`,
+        price: profileData.pricing || 0.0,
+        categoryId: categoryId,
+        technicianProfileId: profile.id,
+      },
+    });
+  }
+
   if (availabilitySlots && availabilitySlots.length > 0) {
     await prisma.availability.deleteMany({
       where: { technicianProfileId: profile.id, isBooked: false },
@@ -53,7 +73,10 @@ const updateProfileIntoDB = async (
 
   return await prisma.technicianProfile.findUnique({
     where: { userId },
-    include: { availabilitySlots: true },
+    include: {
+      availabilitySlots: true,
+      services: true,
+    },
   });
 };
 
@@ -268,7 +291,7 @@ const getAllTechniciansFromDB = async (filters: ITechnicianFilterRequest) => {
 };
 
 const getSingleTechnicianFromDB = async (id: string) => {
-  return await prisma.technicianProfile.findUniqueOrThrow({
+  const technician = await prisma.technicianProfile.findUnique({
     where: { id },
     include: {
       user: true,
@@ -285,6 +308,13 @@ const getSingleTechnicianFromDB = async (id: string) => {
       },
     },
   });
+
+  if (!technician) {
+    
+    throw new Error("Technician profile not found");
+  }
+
+  return technician;
 };
 
 export const technicianService = {

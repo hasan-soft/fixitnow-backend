@@ -3,6 +3,7 @@ export type TTechnicianProfileUpdateInput = {
   skills?: string[];
   experience?: number;
   pricing?: number;
+  categoryId?: string;
   availabilitySlots?: { slot: string }[];
 };
 
