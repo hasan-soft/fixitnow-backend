@@ -120,6 +120,7 @@ const updateAvailabilityIntoDB = async (
 };
 
 const getMyBookingsFromDB = async (userId: string) => {
+  
   const technicianProfile = await prisma.technicianProfile.findUnique({
     where: { userId },
   });

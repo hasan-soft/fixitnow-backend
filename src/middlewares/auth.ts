@@ -1,4 +1,3 @@
-
 import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { Role, UserStatus } from "../../generated/prisma/enums";
@@ -48,15 +47,12 @@ export const auth = (...requiredRoles: Role[]) => {
       );
     }
 
-
     const user = await prisma.user.findUnique({
-      where: { id }, 
+      where: { id },
     });
-
     if (!user) {
       throw new Error("User not found. Please log in again.");
     }
-
 
     if (user.status === UserStatus.BLOCKED) {
       throw new Error("Your account has been blocked. Please contact support.");

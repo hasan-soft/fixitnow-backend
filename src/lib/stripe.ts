@@ -6,5 +6,4 @@ if (!config.stripe_api_secret) {
 }
 
 export const stripe = new Stripe(config.stripe_api_secret, {
-  apiVersion: "2023-10-01" as any,
 });

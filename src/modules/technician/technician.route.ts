@@ -5,6 +5,7 @@ import { auth } from "../../middlewares/auth";
 const router = express.Router();
 
 router.get("/", technicianController.getAllTechnicians);
+router.get("/bookings", auth("TECHNICIAN"), technicianController.getMyBookings);
 router.get("/:id", technicianController.getSingleTechnician);
 
 router.put("/profile", auth("TECHNICIAN"), technicianController.updateProfile);
@@ -21,6 +22,5 @@ router.patch(
   technicianController.updateBookingStatus,
 );
 
-router.get("/bookings", auth("TECHNICIAN"), technicianController.getMyBookings);
 
 export const technicianRoutes = router;

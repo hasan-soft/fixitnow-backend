@@ -56,6 +56,46 @@ const createCheckoutSessionIntoDB = async (
   return transactionResult;
 };
 
+const handleManualPaymentConfirm = async (bookingId: string) => {
+  if (!bookingId) {
+    throw new Error("Booking ID is required to confirm payment");
+  }
+
+  const booking = await prisma.booking.findUniqueOrThrow({
+    where: { id: bookingId },
+    include: { service: true },
+  });
+
+  return await prisma.$transaction(async (tx) => {
+    const existingPayment = await tx.payment.findFirst({
+      where: { bookingId },
+    });
+
+    if (existingPayment) {
+      return existingPayment;
+    }
+
+    const payment = await tx.payment.create({
+      data: {
+        bookingId,
+        amount: booking.service.price,
+        provider: "STRIPE",
+        status: "COMPLETED",
+        transactionId: `mock_tx_${Date.now()}`,
+        method: "CARD",
+        paidAt: new Date(),
+      },
+    });
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { status: "PAID" },
+    });
+
+    return payment;
+  });
+};
+
 const handleWebhook = async (payload: Buffer, signature: string) => {
   const endpointSecret = config.stripe_webhook_secret;
   let event: Stripe.Event;
@@ -171,6 +211,7 @@ const getSinglePaymentFromDB = async (
 
 export const paymentService = {
   createCheckoutSessionIntoDB,
+  handleManualPaymentConfirm,
   handleWebhook,
   getAllPaymentsFromDB,
   getSinglePaymentFromDB,

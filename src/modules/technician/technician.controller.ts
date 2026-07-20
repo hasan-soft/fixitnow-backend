@@ -37,6 +37,7 @@ const updateAvailability = catchAsync(async (req: Request, res: Response) => {
 
 const getMyBookings = catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+  
 
   const result = await technicianService.getMyBookingsFromDB(userId);
 

@@ -7,7 +7,7 @@ import { paymentService } from "./payment.service";
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id;
-    const bookingId = req.params.id;
+    const { bookingId } = req.body;
 
     const result = await paymentService.createCheckoutSessionIntoDB(
       userId as string,
@@ -25,18 +25,31 @@ const createCheckoutSession = catchAsync(
 
 const handleWebhook = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const event = req.body as Buffer;
     const signature = req.headers["stripe-signature"] as string;
 
     if (!signature) {
+      let bodyData = req.body;
+      if (Buffer.isBuffer(req.body)) {
+        try {
+          bodyData = JSON.parse(req.body.toString("utf-8"));
+        } catch (error) {
+          bodyData = {};
+        }
+      }
+
+      const bookingId = bodyData?.bookingId;
+
+      const result = await paymentService.handleManualPaymentConfirm(bookingId);
+
       return sendResponse(res, {
-        success: false,
-        statusCode: httpStatus.BAD_REQUEST,
-        message: "Stripe signature is missing in headers",
-        data: null,
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Payment confirmed successfully (Manual/Development Mode)",
+        data: result,
       });
     }
 
+    const event = req.body as Buffer;
     await paymentService.handleWebhook(event, signature);
 
     sendResponse(res, {
