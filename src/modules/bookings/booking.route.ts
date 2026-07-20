@@ -1,7 +1,7 @@
 import express from "express";
-import { auth } from "../../middlewares/auth";
-import { Role } from "../../../generated/prisma/enums";
-import { bookingController } from "./booking.controller";
+import { auth } from "../../middlewares/auth.js";
+import { Role } from "../../../generated/prisma/enums.js";
+import { bookingController } from "./booking.controller.js";
 
 const router = express.Router();
 

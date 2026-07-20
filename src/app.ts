@@ -1,20 +1,20 @@
 import cookieParser from "cookie-parser";
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
-import config from "./config";
+import config from "./config/index.js";
 
-import { authRoutes } from "./modules/auth/auth.route";
-import { userRoutes } from "./modules/user/user.route";
-import { categoryRoutes } from "./modules/category/category.route";
-import { serviceRoutes } from "./modules/service/service.route";
-import { bookingRoutes } from "./modules/bookings/booking.route";
-import { paymentRoutes } from "./modules/payments/payment.route";
-import { reviewRoutes } from "./modules/reviews/reviews.route";
-import { adminRoutes } from "./modules/admin/admin.route";
-import { technicianRoutes } from "./modules/technician/technician.route";
+import { authRoutes } from "./modules/auth/auth.route.js";
+import { userRoutes } from "./modules/user/user.route.js";
+import { categoryRoutes } from "./modules/category/category.route.js";
+import { serviceRoutes } from "./modules/service/service.route.js";
+import { bookingRoutes } from "./modules/bookings/booking.route.js";
+import { paymentRoutes } from "./modules/payments/payment.route.js";
+import { reviewRoutes } from "./modules/reviews/reviews.route.js";
+import { adminRoutes } from "./modules/admin/admin.route.js";
+import { technicianRoutes } from "./modules/technician/technician.route.js";
 
-import { notFound } from "./middlewares/notFound";
-import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import { notFound } from "./middlewares/notFound.js";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler.js";
 
 const app: Application = express();
 
