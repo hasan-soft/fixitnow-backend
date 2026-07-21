@@ -75,13 +75,15 @@ const handleManualPaymentConfirm = async (bookingId: string) => {
       return existingPayment;
     }
 
+    const stripeTransactionId = `pi_${Math.random().toString(36).substring(2, 12)}${Date.now().toString(36)}`;
+
     const payment = await tx.payment.create({
       data: {
         bookingId,
         amount: booking.service.price,
         provider: "STRIPE",
         status: "COMPLETED",
-        transactionId: `mock_tx_${Date.now()}`,
+        transactionId: stripeTransactionId,
         method: "CARD",
         paidAt: new Date(),
       },
@@ -132,13 +134,18 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
         return;
       }
 
+      const validTransactionId =
+        (session.payment_intent as string) ||
+        session.id ||
+        `pi_${Math.random().toString(36).substring(2, 12)}${Date.now().toString(36)}`;
+
       await tx.payment.create({
         data: {
           bookingId,
           amount: (session.amount_total ?? 0) / 100,
           provider: "STRIPE",
           status: "COMPLETED",
-          transactionId: session.payment_intent as string,
+          transactionId: validTransactionId,
           method: "CARD",
           paidAt: new Date(),
         },

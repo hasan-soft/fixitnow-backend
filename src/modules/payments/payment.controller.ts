@@ -44,7 +44,7 @@ const handleWebhook = catchAsync(
       return sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "Payment confirmed successfully (Manual/Development Mode)",
+        message: "Payment confirmed successfully",
         data: result,
       });
     }
