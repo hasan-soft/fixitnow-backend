@@ -18,6 +18,22 @@ const getAllServices = catchAsync(
   },
 );
 
+const getSingleService = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+  
+    const id = req.params.id as string;
+    const result = await serviceService.getSingleServiceFromDB(id);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Service retrieved successfully",
+      data: result,
+    });
+  },
+);
+
 export const serviceController = {
   getAllServices,
+  getSingleService,
 };

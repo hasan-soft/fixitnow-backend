@@ -46,7 +46,7 @@ const createCheckoutSessionIntoDB = async (
         bookingId: booking.id,
         userId: booking.customerId,
       },
-      success_url: `${config.client_url}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${config.client_url}/payment/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
       cancel_url: `${config.client_url}/payment/cancel`,
     });
 
