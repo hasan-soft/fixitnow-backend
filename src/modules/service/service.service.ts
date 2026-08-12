@@ -93,7 +93,6 @@ const getAllServicesFromDB = async (filters: IServiceFilterRequest) => {
   return result;
 };
 
-
 const getSingleServiceFromDB = async (id: string) => {
   const result = await prisma.service.findUnique({
     where: {
@@ -118,7 +117,32 @@ const getSingleServiceFromDB = async (id: string) => {
   return result;
 };
 
+// Create Service Function
+const createServiceToDB = async (payload: {
+  name: string;
+  description?: string;
+  price: number;
+  categoryId: string;
+  technicianProfileId: string;
+}) => {
+  const result = await prisma.service.create({
+    data: {
+      name: payload.name,
+      description: payload.description,
+      price: Number(payload.price),
+      categoryId: payload.categoryId,
+      technicianProfileId: payload.technicianProfileId,
+    },
+    include: {
+      category: true,
+      technicianProfile: true,
+    },
+  });
+  return result;
+};
+
 export const serviceService = {
   getAllServicesFromDB,
   getSingleServiceFromDB,
+  createServiceToDB,
 };

@@ -15,8 +15,18 @@ const updateProfileIntoDB = async (
   const {
     availabilitySlots = [],
     categoryId,
+    name,
+    profilePicture,
     ...profileData
   } = (payload || {}) as any;
+
+  
+  if (name) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { name },
+    });
+  }
 
   const isProfileExist = await prisma.technicianProfile.findUnique({
     where: { userId },
@@ -27,7 +37,10 @@ const updateProfileIntoDB = async (
   if (isProfileExist) {
     profile = await prisma.technicianProfile.update({
       where: { userId },
-      data: profileData,
+      data: {
+        ...profileData,
+        ...(profilePicture !== undefined && { profilePicture }),
+      },
     });
   } else {
     profile = await prisma.technicianProfile.create({
@@ -37,6 +50,7 @@ const updateProfileIntoDB = async (
         experience: profileData.experience || 0,
         pricing: profileData.pricing || 0.0,
         bio: profileData.bio,
+        profilePicture: profilePicture || null,
       },
     });
   }
@@ -74,6 +88,13 @@ const updateProfileIntoDB = async (
   return await prisma.technicianProfile.findUnique({
     where: { userId },
     include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,   
+        },
+      },
       availabilitySlots: true,
       services: true,
     },
@@ -318,6 +339,27 @@ const getSingleTechnicianFromDB = async (id: string) => {
   return technician;
 };
 
+const getMyProfileFromDB = async (userId: string) => {
+  const technician = await prisma.technicianProfile.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      services: {
+        include: { category: true },
+      },
+      availabilitySlots: true,
+    },
+  });
+
+  return technician; 
+};
+
 export const technicianService = {
   updateProfileIntoDB,
   updateAvailabilityIntoDB,
@@ -325,4 +367,5 @@ export const technicianService = {
   updateBookingStatusInDB,
   getAllTechniciansFromDB,
   getSingleTechnicianFromDB,
+  getMyProfileFromDB,
 };

@@ -1,8 +1,10 @@
 export type TTechnicianProfileUpdateInput = {
+  name?: string;
   bio?: string;
   skills?: string[];
   experience?: number;
   pricing?: number;
+  profilePicture?: string;
   categoryId?: string;
   availabilitySlots?: { slot: string }[];
 };

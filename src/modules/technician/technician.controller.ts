@@ -93,6 +93,21 @@ const getSingleTechnician = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+
+  const result = await technicianService.getMyProfileFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: result
+      ? "Technician profile retrieved successfully"
+      : "No profile found yet",
+    data: result,
+  });
+});
+
 export const technicianController = {
   updateProfile,
   updateAvailability,
@@ -100,4 +115,5 @@ export const technicianController = {
   updateBookingStatus,
   getAllTechnicians,
   getSingleTechnician,
+  getMyProfile,
 };
