@@ -20,7 +20,6 @@ const updateProfileIntoDB = async (
     ...profileData
   } = (payload || {}) as any;
 
-  
   if (name) {
     await prisma.user.update({
       where: { id: userId },
@@ -56,19 +55,31 @@ const updateProfileIntoDB = async (
   }
 
   if (categoryId) {
-    await prisma.service.deleteMany({
+    const existingService = await prisma.service.findFirst({
       where: { technicianProfileId: profile.id },
     });
 
-    await prisma.service.create({
-      data: {
-        name: `${profileData.skills?.[0] || "General"} Service`,
-        description: `Professional ${profileData.skills?.join(", ") || "home"} services rendered by certified technician.`,
-        price: profileData.pricing || 0.0,
-        categoryId: categoryId,
-        technicianProfileId: profile.id,
-      },
-    });
+    if (existingService) {
+      await prisma.service.update({
+        where: { id: existingService.id },
+        data: {
+          name: `${profileData.skills?.[0] || "General"} Service`,
+          description: `Professional ${profileData.skills?.join(", ") || "home"} services rendered by certified technician.`,
+          price: profileData.pricing || existingService.price,
+          categoryId: categoryId,
+        },
+      });
+    } else {
+      await prisma.service.create({
+        data: {
+          name: `${profileData.skills?.[0] || "General"} Service`,
+          description: `Professional ${profileData.skills?.join(", ") || "home"} services rendered by certified technician.`,
+          price: profileData.pricing || 0.0,
+          categoryId: categoryId,
+          technicianProfileId: profile.id,
+        },
+      });
+    }
   }
 
   if (availabilitySlots && availabilitySlots.length > 0) {
@@ -92,7 +103,7 @@ const updateProfileIntoDB = async (
         select: {
           id: true,
           name: true,
-          email: true,   
+          email: true,
         },
       },
       availabilitySlots: true,
