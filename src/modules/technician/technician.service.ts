@@ -152,7 +152,6 @@ const updateAvailabilityIntoDB = async (
 };
 
 const getMyBookingsFromDB = async (userId: string) => {
-  
   const technicianProfile = await prisma.technicianProfile.findUnique({
     where: { userId },
   });
@@ -261,8 +260,21 @@ const updateBookingStatusInDB = async (
 };
 
 const getAllTechniciansFromDB = async (filters: ITechnicianFilterRequest) => {
-  const { searchTerm, categoryId, location, minPrice, maxPrice, rating } =
-    filters;
+  const {
+    searchTerm,
+    categoryId,
+    location,
+    minPrice,
+    maxPrice,
+    rating,
+    page = "1",
+    limit = "9",
+  } = filters;
+
+  const pageNum = parseInt(page as string) || 1;
+  const limitNum = parseInt(limit as string) || 9;
+  const skip = (pageNum - 1) * limitNum;
+
   const andConditions: any[] = [];
 
   if (searchTerm) {
@@ -301,6 +313,11 @@ const getAllTechniciansFromDB = async (filters: ITechnicianFilterRequest) => {
       bookings: { include: { review: true } },
       availabilitySlots: true,
     },
+    skip,
+    take: limitNum,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   let result = technicians.map((tech) => {
@@ -312,15 +329,33 @@ const getAllTechniciansFromDB = async (filters: ITechnicianFilterRequest) => {
     const avgRating =
       bookingsWithReviews.length > 0
         ? totalRating / bookingsWithReviews.length
-        : 0;
-    return { ...tech, averageRating: avgRating };
+        : 5.0;
+
+    return {
+      ...tech,
+      rating: avgRating,
+      reviewCount: bookingsWithReviews.length,
+      averageRating: avgRating,
+    };
   });
 
   if (rating) {
-    result = result.filter((tech) => tech.averageRating >= parseFloat(rating));
+    result = result.filter((tech) => tech.rating >= parseFloat(rating));
   }
 
-  return result;
+  const totalCount = await prisma.technicianProfile.count({
+    where: whereConditions,
+  });
+
+  return {
+    data: result,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total: totalCount,
+      pages: Math.ceil(totalCount / limitNum),
+    },
+  };
 };
 
 const getSingleTechnicianFromDB = async (id: string) => {
@@ -343,11 +378,27 @@ const getSingleTechnicianFromDB = async (id: string) => {
   });
 
   if (!technician) {
-    
     throw new Error("Technician profile not found");
   }
 
-  return technician;
+  const bookingsWithReviews = technician.bookings.filter(
+    (b) => b.review !== null,
+  );
+  const totalRating = bookingsWithReviews.reduce(
+    (sum, b) => sum + (b.review?.rating || 0),
+    0,
+  );
+  const avgRating =
+    bookingsWithReviews.length > 0
+      ? totalRating / bookingsWithReviews.length
+      : 5.0;
+
+  return {
+    ...technician,
+    rating: avgRating,
+    reviewCount: bookingsWithReviews.length,
+    averageRating: avgRating,
+  };
 };
 
 const getMyProfileFromDB = async (userId: string) => {
@@ -368,7 +419,7 @@ const getMyProfileFromDB = async (userId: string) => {
     },
   });
 
-  return technician; 
+  return technician;
 };
 
 export const technicianService = {

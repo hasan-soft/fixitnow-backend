@@ -24,4 +24,6 @@ export interface ITechnicianFilterRequest {
   minPrice?: string;
   maxPrice?: string;
   rating?: string;
+  page?: string;
+  limit?: string;
 }
